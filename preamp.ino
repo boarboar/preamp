@@ -10,6 +10,8 @@ const int RECV_PIN = P2_2;
 // CHUP FFE21D
 // PAU 286101BD
 
+//TMO 100ms
+
 
 
 
@@ -27,6 +29,8 @@ void setup()
 
 void loop() {
   if (irrecv.decode(&results)) {
+    Serial.print(millis());
+    Serial.print(" : ");
     Serial.println(results.value, HEX);
     irrecv.resume(); // Receive the next value
   }
