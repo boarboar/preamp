@@ -78,18 +78,21 @@ void loop() {
 void cmd_vol(uint16_t d) {
   if(invol && invol!=d) {
     // vol stop HERE
-    delay(100);    
+    delay(100);   
+    invol=0; 
 #ifdef _AMP_DBG_          
     Serial.print("VOL STOP ");
 #endif          
   }
-  invol = d;
-  lastms=millis();
+  if(!invol) {
 #ifdef _AMP_DBG_            
-  Serial.print("VOL ");
-  Serial.print(d ? "UP" : "DN");  
-  Serial.print(" START");
-#endif        
+    Serial.print("VOL ");
+    Serial.print(d==2 ? "UP" : "DN");  
+    Serial.print(" START");
+#endif
+    invol = d;
+  }
+  lastms=millis();
 }
 
 void cmd_src(uint16_t d) {
