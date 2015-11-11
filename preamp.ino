@@ -3,8 +3,10 @@
 
 #define _AMP_DBG_  
 
+const unsigned int NSRC=2; 
 
 const unsigned int RECV_PIN = P2_2;
+
 const unsigned long K_REP=0xFFFFFFFF;
 const unsigned long K_VOL_UP=0xFFA857;
 const unsigned long K_VOL_DN=0xFFE01F;
@@ -20,7 +22,11 @@ IRrecv irrecv(RECV_PIN);
 
 decode_results results;
 
-unsigned long lastkey=0;
+uint32_t ms;
+uint32_t lastkey=0;
+uint32_t lastms=0;
+uint8_t  invol=0;
+uint8_t  src=0;
 
 void setup()
 {
@@ -33,6 +39,16 @@ void setup()
 }
 
 void loop() {
+  uint32_t ms = millis();
+  if(invol) {
+    if(ms-lastms>REP_RTMO || ms<lastms) {
+      // stop vol HERE
+      invol=0;
+#ifdef _AMP_DBG_          
+    Serial.println("VOL STOP");
+#endif          
+    } 
+  }
   if (irrecv.decode(&results)) {
 #ifdef _AMP_DBG_      
     Serial.print(millis());
@@ -41,13 +57,13 @@ void loop() {
     Serial.print(" : ");
 #endif    
     switch(results.value) {
-      case K_VOL_UP: cmd_vol(1); break;
-      case K_VOL_DN: cmd_vol(0); break;
-      case K_SRC_UP: cmd_src(1); break;
-      case K_SRC_DN: cmd_src(0); break;
+      case K_VOL_UP: cmd_vol(2); break;
+      case K_VOL_DN: cmd_vol(1); break;
+      case K_SRC_UP: cmd_src(2); break;
+      case K_SRC_DN: cmd_src(1); break;
       case K_REP: 
-        if(lastkey==K_VOL_UP) cmd_vol(1);
-        else if(lastkey==K_VOL_DN) cmd_vol(0);
+        if(lastkey==K_VOL_UP) cmd_vol(2);
+        else if(lastkey==K_VOL_DN) cmd_vol(1);
         break;
       default:;
     }
@@ -60,16 +76,30 @@ void loop() {
 }
 
 void cmd_vol(uint16_t d) {
+  if(invol && invol!=d) {
+    // vol stop HERE
+    delay(100);    
+#ifdef _AMP_DBG_          
+    Serial.print("VOL STOP ");
+#endif          
+  }
+  invol = d;
+  lastms=millis();
 #ifdef _AMP_DBG_            
   Serial.print("VOL ");
   Serial.print(d ? "UP" : "DN");  
-#endif      
+  Serial.print(" START");
+#endif        
 }
 
 void cmd_src(uint16_t d) {
+  // src stop HERE
+  src++;
+  if(src==NSRC) src=0;
+  // do switch HERE  
 #ifdef _AMP_DBG_            
   Serial.print("SRC ");
-  Serial.print(d ? "UP" : "DN");  
+  Serial.print(src);  
 #endif      
 }
 
