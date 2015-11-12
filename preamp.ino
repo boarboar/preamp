@@ -23,7 +23,7 @@ const unsigned long K_VOL_DN=0xFFE01F;
 const unsigned long K_SOURCE=0xFF629D;
 const unsigned long K_SRC_UP=0xFFE21D;
 const unsigned long K_SRC_DN=0xFFA25D;
-const unsigned long K_PAUSE =0x286101BD; // ???
+const unsigned long K_PAUSE =0xFFC23D; 
 
 const unsigned int REP_RTMO=120; //ms
 
@@ -44,21 +44,20 @@ uint8_t  powoff=0;
 
 void setup()
 {
-  //int ports[8]={MOTOR_OUT_1,MOTOR_OUT_2, MOTOR_EN, MOTOR_LED, SSW_HIBERNATE, SSW_SELECT, SSW_LED1, SSW_LED2};
   for(uint8_t i=0;i<NPORTS;i++) {
     digitalWrite(ports[i], LOW); 
     pinMode(ports[i], OUTPUT);
   }
   delay(200);
-  cmd_powoff(0);
-  cmd_src(0);
-  delay(200);
-  
+    
 #ifdef _AMP_DBG_  
   Serial.begin(9600);
-  delay(4000);
+  delay(2000);
   Serial.println("IR TEST++++");
 #endif    
+
+  cmd_powoff(0);  
+  delay(200);
 
   irrecv.enableIRIn(); // Start the receiver
 }
@@ -128,7 +127,6 @@ void cmd_vol(uint16_t d) {
 
 void cmd_src(uint8_t s) {
   if(powoff) return;
-  // src stop HERE
   if(s != 0xff) src=s;
   else {
     src++;
@@ -140,7 +138,7 @@ void cmd_src(uint8_t s) {
   // do switch HERE  
 #ifdef _AMP_DBG_            
   Serial.print("SRC ");
-  Serial.print(src);  
+  Serial.println(src);  
 #endif      
 }
 
@@ -150,19 +148,16 @@ void cmd_powoff(uint8_t s) {
     // power up here
     digitalWrite(MOTOR_LED, HIGH);
     digitalWrite(SSW_HIBERNATE, LOW);
+    powoff=0;
     cmd_src(src);
 #ifdef _AMP_DBG_            
-  Serial.print("POWER ON");
+  Serial.println("POWER ON");
 #endif          
-    powoff=0;
   } else if(s==1 || !powoff) {
-    // power down here
-    //int ports[6]={MOTOR_OUT_1,MOTOR_OUT_2, MOTOR_EN, MOTOR_LED, SSW_LED1, SSW_LED2};
     for(uint8_t i=0;i<NPORTS2;i++) digitalWrite(ports[i], LOW); 
-
     digitalWrite(SSW_HIBERNATE, HIGH);
 #ifdef _AMP_DBG_            
-  Serial.print("POWER OFF");
+  Serial.println("POWER OFF");
 #endif              
     powoff=1;
   }
