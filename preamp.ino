@@ -29,13 +29,13 @@ const unsigned int REP_RTMO=120; //ms
 
 #define NPORTS 8
 #define NPORTS2 6
+#define PORTS_M 3
 int ports[NPORTS]={MOTOR_OUT_1,MOTOR_OUT_2, MOTOR_EN, MOTOR_LED, SSW_LED1, SSW_LED2, SSW_SELECT, SSW_HIBERNATE};
 
 IRrecv irrecv(RECV_PIN);
 
 decode_results results;
 
-uint32_t ms;
 uint32_t lastkey=0;
 uint32_t lastms=0;
 uint8_t  invol=0;
@@ -56,7 +56,7 @@ void setup()
   Serial.println("IR TEST++++");
 #endif    
 
-  cmd_powoff(0);  
+  cmd_powoff(0); // will automatially switch to src 0 
   delay(200);
 
   irrecv.enableIRIn(); // Start the receiver
@@ -66,7 +66,7 @@ void loop() {
   uint32_t ms = millis();
   if(invol) {
     if(ms-lastms>REP_RTMO || ms<lastms) {
-      // stop vol HERE
+      for(uint8_t i=0;i<PORTS_M;i++) digitalWrite(ports[i], LOW); // stop vol
       invol=0;
 #ifdef _AMP_DBG_          
     Serial.println("VOL STOP");
@@ -78,7 +78,7 @@ void loop() {
     Serial.print(millis());
     Serial.print(" : ");
     Serial.print(results.value, HEX);
-    Serial.print(" : ");
+    Serial.println(" : ");
 #endif    
     switch(results.value) {
       case K_VOL_UP: cmd_vol(2); break;
@@ -94,9 +94,6 @@ void loop() {
       default:;
     }
     if(results.value != K_REP) lastkey=results.value;
-#ifdef _AMP_DBG_          
-    Serial.println();
-#endif    
     irrecv.resume(); // Receive the next value
   }
 }
@@ -104,19 +101,18 @@ void loop() {
 void cmd_vol(uint16_t d) {
   if(powoff) return;
   if(invol && invol!=d) {
-    // vol stop HERE
-    digitalWrite(MOTOR_EN, LOW); digitalWrite(MOTOR_OUT_1, LOW); digitalWrite(MOTOR_OUT_2, LOW); 
+    for(uint8_t i=0;i<PORTS_M;i++) digitalWrite(ports[i], LOW); // stop VOL
     delay(100);   
     invol=0; 
 #ifdef _AMP_DBG_          
-    Serial.print("VOL STOP ");
+    Serial.println("VOL STOP ");
 #endif          
   }
   if(!invol) {
 #ifdef _AMP_DBG_            
     Serial.print("VOL ");
     Serial.print(d==2 ? "UP" : "DN");  
-    Serial.print(" START");
+    Serial.println(" START");
 #endif    
     invol = d;
     digitalWrite(MOTOR_OUT_1, invol ? LOW : HIGH); digitalWrite(MOTOR_OUT_2, invol ? HIGH : LOW); 
@@ -143,7 +139,6 @@ void cmd_src(uint8_t s) {
 }
 
 void cmd_powoff(uint8_t s) {
-  //  HERE
   if(s==0 || powoff) { 
     // power up here
     digitalWrite(MOTOR_LED, HIGH);
@@ -154,6 +149,7 @@ void cmd_powoff(uint8_t s) {
   Serial.println("POWER ON");
 #endif          
   } else if(s==1 || !powoff) {
+    // power down
     for(uint8_t i=0;i<NPORTS2;i++) digitalWrite(ports[i], LOW); 
     digitalWrite(SSW_HIBERNATE, HIGH);
 #ifdef _AMP_DBG_            
