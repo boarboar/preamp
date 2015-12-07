@@ -115,7 +115,7 @@ void cmd_vol(uint16_t d) {
     Serial.println(" START");
 #endif    
     invol = d;
-    digitalWrite(MOTOR_OUT_1, invol ? LOW : HIGH); digitalWrite(MOTOR_OUT_2, invol ? HIGH : LOW); 
+    digitalWrite(MOTOR_OUT_1, invol==2 ? LOW : HIGH); digitalWrite(MOTOR_OUT_2, invol==2 ? HIGH : LOW); 
     digitalWrite(MOTOR_EN, HIGH); // or analog write - check the speed or add R (?)
   }
   lastms=millis();
