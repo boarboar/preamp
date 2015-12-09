@@ -1,7 +1,7 @@
 
-#include <IRremote.h>
+#include "IRremote1.h"
 
-#define _AMP_DBG_  
+//#define _AMP_DBG_  
 
 const unsigned int RECV_PIN = P2_2;
 
@@ -32,7 +32,7 @@ const unsigned int REP_RTMO=120; //ms
 #define PORTS_M 3
 int ports[NPORTS]={MOTOR_OUT_1,MOTOR_OUT_2, MOTOR_EN, MOTOR_LED, SSW_LED1, SSW_LED2, SSW_SELECT, SSW_HIBERNATE};
 
-IRrecv irrecv(RECV_PIN);
+IRrecv1 irrecv(RECV_PIN);
 
 decode_results results;
 
